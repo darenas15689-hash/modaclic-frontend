@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import SidebarOperario from './components/SidebarOperario'
 import SidebarAsesor from './components/SidebarAsesor' // ✅ ASESOR
@@ -32,40 +32,14 @@ import InventarioMateriaPrima from './pages/inventario/InventarioMateriaPrima'
 
 function Layout() {
   const location = useLocation()
-  const navigate = useNavigate()
 
   const esOperario = location.pathname.startsWith('/operario')
   const esAdminTaller = location.pathname.startsWith('/admin-taller')
   const esAsesor = location.pathname.startsWith('/asesor')
   const esHome = location.pathname === '/'
 
-  // 🔥 Detectar login
-  const esLogin = location.pathname === '/'
-
   return (
     <div className="row g-0">
-
-      {/* 🔥 BOTÓN SOLO EN LOGIN */}
-      {esLogin && (
-        <button
-          onClick={() => navigate('/register')}
-          style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            padding: '10px 15px',
-            background: '#ff69b4',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Registrarse
-        </button>
-      )}
-
       {!esHome && (
         esOperario ? (
           <SidebarOperario />
