@@ -1,11 +1,12 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: "https://modaclic-backend-production-35a0.up.railway.app/api"
+  baseURL: "https://modaclic-backend-production-35a0.up.railway.app/api",
   headers: {
     'Content-Type': 'application/json'
   }
 })
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token")
@@ -20,4 +21,5 @@ api.interceptors.request.use(
     return Promise.reject(error)
   }
 )
+
 export default api
