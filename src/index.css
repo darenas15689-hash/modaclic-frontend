@@ -1,0 +1,164 @@
+:root {
+  /* 🎨 PALETA CREATIVIDAD & COLOR */
+  --primary: #EF036C;       /* Rosa intenso */
+  --primary-soft: #ffe3ef; /* Rosa suave fondos */
+  --secondary: #31EC56;    /* Verde malaquita */
+  --neutral: #6E6E6E;      /* Gris tenue */
+  --white: #FFFFFF;
+
+  /* 🖋 TIPOGRAFÍA */
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* 🌞 SOLO MODO CLARO */
+  color-scheme: light;
+  color: var(--neutral);
+  background-color: var(--white);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== RESET DARK DE BOOTSTRAP ===== */
+.bg-dark,
+.table-dark,
+.text-bg-dark {
+  background-color: var(--primary) !important;
+  color: var(--white) !important;
+}
+
+/* ===== LINKS ===== */
+a {
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--secondary);
+}
+
+/* ===== BODY ===== */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--white);
+}
+
+/* ===== CONTENEDORES / CARDS ===== */
+.card {
+  border-radius: 14px;
+  border: none;
+  background-color: var(--white);
+  box-shadow: 0 8px 24px rgba(239, 3, 108, 0.08);
+}
+
+/* ===== TITULOS ===== */
+h1, h2, h3, h4, h5 {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 3rem;
+  line-height: 1.1;
+}
+
+/* ===== BOTONES ===== */
+button,
+.btn {
+  border-radius: 10px;
+  border: none;
+  padding: 0.6em 1.4em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--primary);
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+}
+
+button:hover,
+.btn:hover {
+  background-color: #c9025a;
+  color: var(--white);
+}
+
+.btn-outline-primary {
+  background-color: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary);
+  color: var(--white);
+}
+
+/* ===== INPUTS / FORMS ===== */
+input,
+select,
+textarea {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0.55em 0.75em;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--secondary);
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(49, 236, 86, 0.25);
+}
+
+/* ===== TABLAS ===== */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+thead {
+  background-color: var(--primary);
+  color: var(--white);
+}
+
+tbody tr:hover {
+  background-color: var(--primary-soft);
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  background: linear-gradient(180deg, var(--primary), #ff4f9a);
+  color: var(--white);
+}
+
+.sidebar a {
+  color: var(--white);
+  opacity: 0.9;
+}
+
+.sidebar a:hover {
+  opacity: 1;
+  color: var(--secondary);
+}
+
+/* ===== UTILIDADES ===== */
+.text-primary { color: var(--primary) !important; }
+.text-secondary { color: var(--secondary) !important; }
+.bg-primary {
+  background-color: var(--primary) !important;
+  color: var(--white) !important;
+}
+.bg-secondary {
+  background-color: var(--secondary) !important;
+  color: #0f3d1e !important;
+}
