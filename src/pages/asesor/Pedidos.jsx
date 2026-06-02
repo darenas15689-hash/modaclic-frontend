@@ -1,5 +1,47 @@
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
+import AutocompleteInput from '../../components/AutocompleteInput'
+
+// Mapeo de nombres de colores en español a códigos hex válidos
+const colorNameMap = {
+  'Negro': '#000000',
+  'Blanco': '#FFFFFF',
+  'Azul Navy': '#000080',
+  'Azul': '#0000FF',
+  'Rojo': '#FF0000',
+  'Verde': '#00FF00',
+  'Gris': '#808080',
+  'Beige': '#F5F5DC',
+  'Verde Militar': '#556B2F',
+  'Café': '#8B4513',
+  'Cafe': '#8B4513',
+  'Amarillo': '#FFFF00',
+  'Rosa': '#FFC0CB',
+  'Rosado': '#FFC0CB',
+  'Fucsia': '#FF00FF',
+  'Magenta': '#FF00FF',
+  'Cian': '#00FFFF',
+  'Turquesa': '#008080',
+  'Marrón': '#8B4513',
+  'Marron': '#8B4513',
+  'Vinotinto': '#800000'
+}
+
+const normalizeColor = (c) => {
+  if (!c && c !== '') return ''
+  const s = String(c || '').trim()
+  // Si ya es un hex válido, devolver tal cual
+  if (/^#([0-9A-F]{3}){1,2}$/i.test(s)) return s
+  // Buscar coincidencia por nombre (insensible a mayúsculas)
+  const normalizeName = value => value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+  const found = Object.keys(colorNameMap).find(k => normalizeName(k) === normalizeName(s))
+  if (found) return colorNameMap[found]
+  // Devolver original como fallback
+  return s
+}
 
 const productosDisponibles = [
   'Saco Clásico', 'Saco Slim Fit', 'Saco Formal',
@@ -28,6 +70,10 @@ function PedidosAsesor() {
   const [pedidos, setPedidos] = useState([])
   const [editandoId, setEditandoId] = useState(null)
 
+  // ========================= PAGINACIÓN =========================
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
   const [nuevo, setNuevo] = useState({
     cliente: '',
     producto: '',
@@ -44,6 +90,14 @@ function PedidosAsesor() {
   const productosHistorial = [...new Set(pedidos.map(p => p.producto || p.producto_interesado || p.tipo_producto))]
 
   const taller_id = 1
+
+  // ========================= ORDEN INVERTIDO + PAGINACIÓN =========================
+  const pedidosInvertidos = [...pedidos].reverse()
+  const totalPages = Math.ceil(pedidosInvertidos.length / itemsPerPage)
+  const currentItems = pedidosInvertidos.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   const cargarPedidos = async () => {
     try {
@@ -90,6 +144,7 @@ function PedidosAsesor() {
       })
 
       setEditandoId(null)
+      setCurrentPage(1) // Volver a la primera página para ver el nuevo registro
       cargarPedidos()
     } catch (error) {
       console.error('Error guardando pedido:', error.response?.data)
@@ -105,7 +160,7 @@ function PedidosAsesor() {
       tipo_prenda: pedido.tipo_prenda || '',
       talla: pedido.talla || '',
       medidas_personalizadas: pedido.medidas_personalizadas || '',
-      color: pedido.color || ''
+      color: normalizeColor(pedido.color || '')
     })
 
     setEditandoId(pedido.id)
@@ -116,6 +171,8 @@ function PedidosAsesor() {
     if (!window.confirm('¿Eliminar este pedido?')) return
     try {
       await api.delete(`/pedidos/${id}`)
+      const newTotal = Math.ceil((pedidos.length - 1) / itemsPerPage)
+      if (currentPage > newTotal && newTotal > 0) setCurrentPage(newTotal)
       cargarPedidos()
     } catch (error) {
       console.error('Error eliminando pedido:', error.response?.data)
@@ -130,32 +187,24 @@ function PedidosAsesor() {
         <h6>{editandoId ? 'Editar Pedido' : 'Nuevo Pedido'}</h6>
 
         {/* 🔥 CLIENTE AUTOCOMPLETE */}
-        <input
+        <AutocompleteInput
+          id="asesor-pedidos-clientes"
           className="form-control mb-2"
           placeholder="Cliente"
-          list="clientes"
+          options={clientes}
           value={nuevo.cliente}
           onChange={e => setNuevo({ ...nuevo, cliente: e.target.value })}
         />
-        <datalist id="clientes">
-          {clientes.map((c, i) => (
-            <option key={i} value={c} />
-          ))}
-        </datalist>
 
         {/* 🔥 PRODUCTO AUTOCOMPLETE */}
-        <input
+        <AutocompleteInput
+          id="asesor-pedidos-productos"
           className="form-control mb-2"
           placeholder="Producto"
-          list="productos"
+          options={[...productosDisponibles, ...productosHistorial]}
           value={nuevo.producto}
           onChange={e => setNuevo({ ...nuevo, producto: e.target.value })}
         />
-        <datalist id="productos">
-          {[...productosDisponibles, ...productosHistorial].map((p, i) => (
-            <option key={i} value={p} />
-          ))}
-        </datalist>
 
         <select
           className="form-select mb-2"
@@ -197,7 +246,7 @@ function PedidosAsesor() {
                   width: 26,
                   height: 26,
                   backgroundColor: c,
-                  border: nuevo.color === c ? '3px solid #000' : '1px solid #ccc',
+                  border: normalizeColor(nuevo.color) === c ? '3px solid #000' : '1px solid #ccc',
                   cursor: 'pointer'
                 }}
               />
@@ -247,7 +296,7 @@ function PedidosAsesor() {
         </thead>
 
         <tbody>
-          {pedidos.map(p => (
+          {currentItems.map(p => (
             <tr key={p.id}>
               <td>{p.cliente}</td>
               <td>{p.producto || p.producto_interesado || p.tipo_producto}</td>
@@ -258,7 +307,7 @@ function PedidosAsesor() {
                   <div style={{
                     width: 18,
                     height: 18,
-                    backgroundColor: p.color,
+                    backgroundColor: normalizeColor(p.color),
                     border: '1px solid #000'
                   }} />
                 )}
@@ -273,6 +322,29 @@ function PedidosAsesor() {
           ))}
         </tbody>
       </table>
+
+      {/* ================= PAGINACIÓN ================= */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-secondary small fw-semibold">
+            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {pedidos.length} registros
+          </span>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
     </div>
   )
 }
