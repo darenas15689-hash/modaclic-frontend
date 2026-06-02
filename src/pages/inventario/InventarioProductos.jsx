@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
+import AutocompleteInput from '../../components/AutocompleteInput'
 
 /* 🔹 AUTOCOMPLETADO (NUEVO) */
 const nombresProductos = [
@@ -30,6 +31,17 @@ function InventarioProductos() {
     stock: ''
   })
 
+  // ========================= PAGINACIÓN =========================
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  const productosInvertidos = [...productos].reverse()
+  const totalPages = Math.ceil(productosInvertidos.length / itemsPerPage)
+  const currentItems = productosInvertidos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const nombresHistorial = [...new Set(productos.map(p => p.nombre))]
+  const tiposHistorial = [...new Set(productos.map(p => p.tipo))]
+  const tallasHistorial = [...new Set(productos.map(p => p.talla))]
+  const coloresHistorial = [...new Set(productos.map(p => p.color))]
+
   const cargar = async () => {
     const res = await fetch('http://localhost:5000/api/inventario/productos')
     setProductos(await res.json())
@@ -56,6 +68,7 @@ function InventarioProductos() {
 
     setNuevo({ nombre:'', tipo:'', talla:'', color:'', stock:'' })
     setEditandoId(null)
+    setCurrentPage(1)
     cargar()
   }
 
@@ -80,60 +93,44 @@ function InventarioProductos() {
       <div className="card p-3 mb-3">
 
         {/* 🔹 NOMBRE */}
-        <input
+        <AutocompleteInput
+          id="inventario-productos-nombres"
           className="form-control mb-2"
           placeholder="Nombre"
-          list="nombresProductos"
+          options={[...nombresProductos, ...nombresHistorial]}
           value={nuevo.nombre}
           onChange={e=>setNuevo({...nuevo,nombre:e.target.value})}
         />
-        <datalist id="nombresProductos">
-          {nombresProductos.map((n,i)=>(
-            <option key={i} value={n}/>
-          ))}
-        </datalist>
 
         {/* 🔹 TIPO */}
-        <input
+        <AutocompleteInput
+          id="inventario-productos-tipos"
           className="form-control mb-2"
           placeholder="Tipo"
-          list="tiposProductos"
+          options={[...tiposProductos, ...tiposHistorial]}
           value={nuevo.tipo}
           onChange={e=>setNuevo({...nuevo,tipo:e.target.value})}
         />
-        <datalist id="tiposProductos">
-          {tiposProductos.map((t,i)=>(
-            <option key={i} value={t}/>
-          ))}
-        </datalist>
 
         {/* 🔹 TALLA */}
-        <input
+        <AutocompleteInput
+          id="inventario-productos-tallas"
           className="form-control mb-2"
           placeholder="Talla"
-          list="tallasDisponibles"
+          options={[...tallasDisponibles, ...tallasHistorial]}
           value={nuevo.talla}
           onChange={e=>setNuevo({...nuevo,talla:e.target.value})}
         />
-        <datalist id="tallasDisponibles">
-          {tallasDisponibles.map((t,i)=>(
-            <option key={i} value={t}/>
-          ))}
-        </datalist>
 
         {/* 🔹 COLOR */}
-        <input
+        <AutocompleteInput
+          id="inventario-productos-colores"
           className="form-control mb-2"
           placeholder="Color"
-          list="coloresDisponibles"
+          options={[...coloresDisponibles, ...coloresHistorial]}
           value={nuevo.color}
           onChange={e=>setNuevo({...nuevo,color:e.target.value})}
         />
-        <datalist id="coloresDisponibles">
-          {coloresDisponibles.map((c,i)=>(
-            <option key={i} value={c}/>
-          ))}
-        </datalist>
 
         {/* 🔹 STOCK */}
         <input
@@ -156,7 +153,7 @@ function InventarioProductos() {
           </tr>
         </thead>
         <tbody>
-          {productos.map(p=>(
+          {currentItems.map(p=>(
             <tr key={p.id}>
               <td>{p.nombre}</td>
               <td>{p.tipo}</td>
@@ -171,6 +168,29 @@ function InventarioProductos() {
           ))}
         </tbody>
       </table>
+
+      {/* ================= PAGINACIÓN ================= */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-secondary small fw-semibold">
+            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {productos.length} registros
+          </span>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
     </div>
   )
 }

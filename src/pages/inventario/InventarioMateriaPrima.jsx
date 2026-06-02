@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AutocompleteInput from '../../components/AutocompleteInput'
 
 /* 🔹 AUTOCOMPLETADO (NUEVO) */
 const nombresMateria = [
@@ -19,6 +20,15 @@ function InventarioMateriaPrima() {
     unidad: '',
     stock: ''
   })
+
+  // ========================= PAGINACIÓN =========================
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  const itemsInvertidos = [...items].reverse()
+  const totalPages = Math.ceil(itemsInvertidos.length / itemsPerPage)
+  const currentItems = itemsInvertidos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const nombresHistorial = [...new Set(items.map(i => i.nombre))]
+  const unidadesHistorial = [...new Set(items.map(i => i.unidad))]
 
   const cargar = async () => {
     const res = await fetch('http://localhost:5000/api/inventario/materia-prima')
@@ -42,6 +52,7 @@ function InventarioMateriaPrima() {
 
     setNuevo({nombre:'',unidad:'',stock:''})
     setEditandoId(null)
+    setCurrentPage(1)
     cargar()
   }
 
@@ -66,32 +77,24 @@ function InventarioMateriaPrima() {
       <div className="card p-3 mb-3">
 
         {/* 🔹 NOMBRE */}
-        <input
+        <AutocompleteInput
+          id="inventario-materia-nombres"
           className="form-control mb-2"
           placeholder="Nombre"
-          list="nombresMateria"
+          options={[...nombresMateria, ...nombresHistorial]}
           value={nuevo.nombre}
           onChange={e=>setNuevo({...nuevo,nombre:e.target.value})}
         />
-        <datalist id="nombresMateria">
-          {nombresMateria.map((n,i)=>(
-            <option key={i} value={n}/>
-          ))}
-        </datalist>
 
         {/* 🔹 UNIDAD */}
-        <input
+        <AutocompleteInput
+          id="inventario-materia-unidades"
           className="form-control mb-2"
           placeholder="Unidad (m, kg, rollos)"
-          list="unidadesDisponibles"
+          options={[...unidadesDisponibles, ...unidadesHistorial]}
           value={nuevo.unidad}
           onChange={e=>setNuevo({...nuevo,unidad:e.target.value})}
         />
-        <datalist id="unidadesDisponibles">
-          {unidadesDisponibles.map((u,i)=>(
-            <option key={i} value={u}/>
-          ))}
-        </datalist>
 
         {/* 🔹 STOCK */}
         <input
@@ -114,7 +117,7 @@ function InventarioMateriaPrima() {
           </tr>
         </thead>
         <tbody>
-          {items.map(i=>(
+          {currentItems.map(i=>(
             <tr key={i.id}>
               <td>{i.nombre}</td>
               <td>{i.unidad}</td>
@@ -127,6 +130,29 @@ function InventarioMateriaPrima() {
           ))}
         </tbody>
       </table>
+
+      {/* ================= PAGINACIÓN ================= */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-secondary small fw-semibold">
+            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {items.length} registros
+          </span>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
+import AutocompleteInput from '../../components/AutocompleteInput'
 
 function CatalogoAdminTaller() {
   const [productos, setProductos] = useState([])
   const [nuevo, setNuevo] = useState({ nombre: '', precio: '', categoria_id: 1, activo: true })
   const [editando, setEditando] = useState(null)
   const taller_id = 1
+
+  // ========================= PAGINACIÓN =========================
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  const productosInvertidos = [...productos].reverse()
+  const totalPages = Math.ceil(productosInvertidos.length / itemsPerPage)
+  const currentItems = productosInvertidos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const nombresProductos = [...new Set(productos.map(p => p.nombre))]
 
   const cargarProductos = async () => {
     try {
@@ -23,6 +32,7 @@ function CatalogoAdminTaller() {
     try {
       await api.post('/productos', { ...nuevo, taller_id })
       setNuevo({ nombre: '', precio: '', categoria_id: 1, activo: true })
+      setCurrentPage(1)
       cargarProductos()
     } catch (error) { console.error(error) }
   }
@@ -55,7 +65,8 @@ function CatalogoAdminTaller() {
       <div className="card p-3 mb-3">
         <h6>{editando ? "Editar Producto" : "Agregar Producto"}</h6>
         <div className="d-flex gap-2 flex-wrap">
-          <input type="text" className="form-control" placeholder="Nombre"
+          <AutocompleteInput id="admin-catalogo-nombres" type="text" className="form-control" placeholder="Nombre"
+                 options={nombresProductos}
                  value={editando ? editando.nombre : nuevo.nombre}
                  onChange={e => editando ? setEditando({ ...editando, nombre: e.target.value })
                                           : setNuevo({ ...nuevo, nombre: e.target.value })}/>
@@ -74,7 +85,7 @@ function CatalogoAdminTaller() {
           <tr><th>Producto</th><th>Precio</th><th>Estado</th><th>Acción</th></tr>
         </thead>
         <tbody>
-          {productos.map(p => (
+          {currentItems.map(p => (
             <tr key={p.id}>
               <td>{p.nombre}</td>
               <td>${p.precio}</td>
@@ -90,6 +101,29 @@ function CatalogoAdminTaller() {
           ))}
         </tbody>
       </table>
+
+      {/* ================= PAGINACIÓN ================= */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-secondary small fw-semibold">
+            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {productos.length} registros
+          </span>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
     </div>
   )
 }

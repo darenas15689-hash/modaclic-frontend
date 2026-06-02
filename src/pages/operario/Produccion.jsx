@@ -5,6 +5,13 @@ function ProduccionOperario() {
   const [ordenes, setOrdenes] = useState([])
   const taller_id = 1
 
+  // ========================= PAGINACIÓN =========================
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  const ordenesInvertidas = [...ordenes].reverse()
+  const totalPages = Math.ceil(ordenesInvertidas.length / itemsPerPage)
+  const currentItems = ordenesInvertidas.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
   const cargarOrdenes = () => {
     api.get(`/produccion?taller_id=${taller_id}`)
       .then(res => setOrdenes(res.data))
@@ -43,7 +50,7 @@ function ProduccionOperario() {
         </thead>
 
         <tbody>
-          {ordenes.map(o => (
+          {currentItems.map(o => (
             <tr key={o.id}>
               <td>{o.pedido_id}</td>
               <td>{o.estado}</td>
@@ -73,6 +80,29 @@ function ProduccionOperario() {
           ))}
         </tbody>
       </table>
+
+      {/* ================= PAGINACIÓN ================= */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-secondary small fw-semibold">
+            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {ordenes.length} registros
+          </span>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
     </div>
   )
 }

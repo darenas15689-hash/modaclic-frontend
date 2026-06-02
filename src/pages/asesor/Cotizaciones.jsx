@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
+import AutocompleteInput from "../../components/AutocompleteInput";
 
 const API_URL = "http://localhost:5000/api/cotizaciones";
 
 export default function Cotizaciones() {
   const [lista, setLista] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
+
+  // ========================= PAGINACIÓN =========================
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [form, setForm] = useState({
     cliente: "",
@@ -22,6 +27,14 @@ export default function Cotizaciones() {
   const clientes = [...new Set(lista.map(c => c.cliente))];
   const prendas = [...new Set(lista.map(c => c.tipo_prenda))];
   const telas = [...new Set(lista.map(c => c.tela))];
+
+  // ========================= ORDEN INVERTIDO + PAGINACIÓN =========================
+  const listaInvertida = [...lista].reverse();
+  const totalPages = Math.ceil(listaInvertida.length / itemsPerPage);
+  const currentItems = listaInvertida.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // =========================
   // CARGAR COTIZACIONES
@@ -65,6 +78,7 @@ export default function Cotizaciones() {
     });
 
     setEditandoId(null);
+    setCurrentPage(1); // Volver a la primera página para ver el nuevo registro
     cargar();
   };
 
@@ -84,6 +98,9 @@ export default function Cotizaciones() {
     if (!confirm("¿Eliminar cotización?")) return;
 
     await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    // Ajustar página si la actual queda vacía tras eliminar
+    const newTotal = Math.ceil((lista.length - 1) / itemsPerPage);
+    if (currentPage > newTotal && newTotal > 0) setCurrentPage(newTotal);
     cargar();
   };
 
@@ -96,46 +113,34 @@ export default function Cotizaciones() {
         <h5>{editandoId ? "Editar Cotización" : "Nueva Cotización"}</h5>
 
         {/* CLIENTE */}
-        <input
+        <AutocompleteInput
+          id="cotizaciones-clientes"
           className="form-control mb-2"
           placeholder="Cliente"
-          list="clientes"
+          options={clientes}
           value={form.cliente}
           onChange={e => setForm({ ...form, cliente: e.target.value })}
         />
-        <datalist id="clientes">
-          {clientes.map((c, i) => (
-            <option key={i} value={c} />
-          ))}
-        </datalist>
 
         {/* TIPO PRENDA */}
-        <input
+        <AutocompleteInput
+          id="cotizaciones-prendas"
           className="form-control mb-2"
           placeholder="Tipo prenda"
-          list="prendas"
+          options={prendas}
           value={form.tipo_prenda}
           onChange={e => setForm({ ...form, tipo_prenda: e.target.value })}
         />
-        <datalist id="prendas">
-          {prendas.map((p, i) => (
-            <option key={i} value={p} />
-          ))}
-        </datalist>
 
         {/* TELA */}
-        <input
+        <AutocompleteInput
+          id="cotizaciones-telas"
           className="form-control mb-2"
           placeholder="Tela"
-          list="telas"
+          options={telas}
           value={form.tela}
           onChange={e => setForm({ ...form, tela: e.target.value })}
         />
-        <datalist id="telas">
-          {telas.map((t, i) => (
-            <option key={i} value={t} />
-          ))}
-        </datalist>
 
         <input
           type="number"
@@ -189,7 +194,7 @@ export default function Cotizaciones() {
           </tr>
         </thead>
         <tbody>
-          {lista.map(c => (
+          {currentItems.map(c => (
             <tr key={c.id}>
               <td>{c.cliente}</td>
               <td>{c.tipo_prenda}</td>
@@ -209,6 +214,29 @@ export default function Cotizaciones() {
           ))}
         </tbody>
       </table>
+
+      {/* ================= PAGINACIÓN ================= */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-secondary small fw-semibold">
+            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {lista.length} registros
+          </span>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

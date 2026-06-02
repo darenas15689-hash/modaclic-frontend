@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useEffect, useState } from 'react'
+import AutocompleteInput from '../../components/AutocompleteInput'
 
 function ProduccionAdminTaller() {
 
@@ -21,6 +22,7 @@ function ProduccionAdminTaller() {
     try {
       await axios.post('http://127.0.0.1:5000/api/produccion', form)
       alert('Orden creada correctamente')
+      setCurrentPage(1)
       cargarOrdenes()
     } catch (error) {
       console.error(error)
@@ -30,6 +32,13 @@ function ProduccionAdminTaller() {
 
   /* ===== LISTADO DE ÓRDENES ===== */
   const [ordenes, setOrdenes] = useState([])
+
+  // ========================= PAGINACIÓN =========================
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  const ordenesInvertidas = [...ordenes].reverse()
+  const totalPages = Math.ceil(ordenesInvertidas.length / itemsPerPage)
+  const currentItems = ordenesInvertidas.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   // 🔥 AUTOCOMPLETADO (NUEVO)
   const pedidosIds = [...new Set(ordenes.map(o => o.pedido_id))]
@@ -85,32 +94,26 @@ function ProduccionAdminTaller() {
       <h4 className="mb-3">Nueva Orden de Producción</h4>
 
       {/* 🔥 AUTOCOMPLETE PEDIDO ID */}
-      <input
+      <AutocompleteInput
+        id="admin-produccion-pedidos"
         className="form-control mb-2"
         name="pedido_id"
         placeholder="ID Pedido"
-        list="pedidos"
+        options={pedidosIds}
+        value={form.pedido_id}
         onChange={handleChange}
       />
-      <datalist id="pedidos">
-        {pedidosIds.map((p, i) => (
-          <option key={i} value={p} />
-        ))}
-      </datalist>
 
       {/* 🔥 AUTOCOMPLETE PRODUCTO */}
-      <input
+      <AutocompleteInput
+        id="admin-produccion-productos"
         className="form-control mb-2"
         name="producto"
         placeholder="Producto"
-        list="productos"
+        options={productos}
+        value={form.producto}
         onChange={handleChange}
       />
-      <datalist id="productos">
-        {productos.map((p, i) => (
-          <option key={i} value={p} />
-        ))}
-      </datalist>
 
       <input
         className="form-control mb-2"
@@ -120,18 +123,15 @@ function ProduccionAdminTaller() {
       />
 
       {/* 🔥 AUTOCOMPLETE RESPONSABLE */}
-      <input
+      <AutocompleteInput
+        id="admin-produccion-responsables"
         className="form-control mb-2"
         name="responsable"
         placeholder="ID Operario"
-        list="responsables"
+        options={responsables}
+        value={form.responsable}
         onChange={handleChange}
       />
-      <datalist id="responsables">
-        {responsables.map((r, i) => (
-          <option key={i} value={r} />
-        ))}
-      </datalist>
 
       <input
         className="form-control mb-2"
@@ -158,7 +158,7 @@ function ProduccionAdminTaller() {
           </tr>
         </thead>
         <tbody>
-          {ordenes.map(o => (
+          {currentItems.map(o => (
             <tr key={o.id}>
               <td>{o.pedido_id}</td>
               <td>{o.estado}</td>
@@ -182,6 +182,29 @@ function ProduccionAdminTaller() {
           ))}
         </tbody>
       </table>
+
+      {/* ================= PAGINACIÓN ================= */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-secondary small fw-semibold">
+            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {ordenes.length} registros
+          </span>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
 
     </div>
   )

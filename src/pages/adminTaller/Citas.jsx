@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
+import AutocompleteInput from '../../components/AutocompleteInput'
 
 function CitasAdminTaller() {
   const [citas,setCitas] = useState([])
   const [nueva,setNueva] = useState({cliente:'',fecha:'',asesor:''})
   const taller_id = 1
+
+  // ========================= PAGINACIÓN =========================
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  const citasInvertidas = [...citas].reverse()
+  const totalPages = Math.ceil(citasInvertidas.length / itemsPerPage)
+  const currentItems = citasInvertidas.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const clientes = [...new Set(citas.map(c => c.cliente))]
+  const asesores = [...new Set(citas.map(c => c.asesor))]
 
   const cargarCitas = async ()=>{
     try{ const res = await api.get(`/citas?taller_id=${taller_id}`); setCitas(res.data) }
@@ -15,7 +25,7 @@ function CitasAdminTaller() {
 
   const agregarCita = async ()=>{
     if(!nueva.cliente || !nueva.fecha || !nueva.asesor) return alert("Todos los campos son requeridos")
-    try{ await api.post('/citas',{...nueva,taller_id}); setNueva({cliente:'',fecha:'',asesor:''}); cargarCitas() }
+    try{ await api.post('/citas',{...nueva,taller_id}); setNueva({cliente:'',fecha:'',asesor:''}); setCurrentPage(1); cargarCitas() }
     catch(error){ console.error(error) }
   }
 
@@ -39,12 +49,12 @@ function CitasAdminTaller() {
       <div className="card p-3 mb-3">
         <h6>Agregar Nueva Cita</h6>
         <div className="d-flex gap-2 flex-wrap">
-          <input type="text" placeholder="Cliente" className="form-control"
-                 value={nueva.cliente} onChange={e=>setNueva({...nueva,cliente:e.target.value})}/>
+          <AutocompleteInput id="admin-citas-clientes" type="text" placeholder="Cliente" className="form-control"
+                 options={clientes} value={nueva.cliente} onChange={e=>setNueva({...nueva,cliente:e.target.value})}/>
           <input type="datetime-local" className="form-control"
                  value={nueva.fecha} onChange={e=>setNueva({...nueva,fecha:e.target.value})}/>
-          <input type="text" placeholder="Asesor" className="form-control"
-                 value={nueva.asesor} onChange={e=>setNueva({...nueva,asesor:e.target.value})}/>
+          <AutocompleteInput id="admin-citas-asesores" type="text" placeholder="Asesor" className="form-control"
+                 options={asesores} value={nueva.asesor} onChange={e=>setNueva({...nueva,asesor:e.target.value})}/>
           <button className="btn btn-success" onClick={agregarCita}>Agregar Cita</button>
         </div>
       </div>
@@ -52,7 +62,7 @@ function CitasAdminTaller() {
       <table className="table table-dark table-hover">
         <thead><tr><th>Cliente</th><th>Fecha</th><th>Asesor</th><th>Acción</th></tr></thead>
         <tbody>
-          {citas.map(c=>(
+          {currentItems.map(c=>(
             <tr key={c.id}>
               <td>{c.cliente}</td>
               <td>{new Date(c.fecha).toLocaleString()}</td>
@@ -65,6 +75,29 @@ function CitasAdminTaller() {
           ))}
         </tbody>
       </table>
+
+      {/* ================= PAGINACIÓN ================= */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-secondary small fw-semibold">
+            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {citas.length} registros
+          </span>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
     </div>
   )
 }

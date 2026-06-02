@@ -1,6 +1,18 @@
 import { useState } from "react";
 import { register } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import AutocompleteInput from "../components/AutocompleteInput";
+import AuthFloatingBackground from "../components/AuthFloatingBackground";
+
+const emailDomains = ["gmail.com", "hotmail.com", "outlook.com", "yahoo.com"];
+
+const buildEmailSuggestions = (email) => {
+  const [localPart, domainPart = ""] = email.split("@");
+  if (!localPart) return [];
+  return emailDomains
+    .filter(domain => !email.includes("@") || domain.startsWith(domainPart.toLowerCase()))
+    .map(domain => `${localPart}@${domain}`);
+};
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -27,6 +39,8 @@ export default function Register() {
 
   return (
     <div style={styles.container}>
+      <AuthFloatingBackground />
+
       <form onSubmit={handleSubmit} style={styles.form}>
         <h2 style={{ marginBottom: "20px" }}>Registro </h2>
 
@@ -36,15 +50,19 @@ export default function Register() {
           onChange={(e) =>
             setForm({ ...form, nombre: e.target.value })
           }
+          autoComplete="name"
           style={styles.input}
         />
 
-        <input
+        <AutocompleteInput
+          id="register-email-suggestions"
           placeholder="Email"
+          options={buildEmailSuggestions(form.email)}
           value={form.email}
           onChange={(e) =>
             setForm({ ...form, email: e.target.value })
           }
+          autoComplete="email"
           style={styles.input}
         />
 
@@ -55,6 +73,7 @@ export default function Register() {
           onChange={(e) =>
             setForm({ ...form, password: e.target.value })
           }
+          autoComplete="new-password"
           style={styles.input}
         />
 
@@ -84,7 +103,10 @@ const styles = {
     height: "100vh",
     display: "flex",
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate"
   },
   form: {
     background: "white",
@@ -93,7 +115,9 @@ const styles = {
     width: "300px",
     display: "flex",
     flexDirection: "column",
-    gap: "10px"
+    gap: "10px",
+    position: "relative",
+    zIndex: 1
   },
   input: {
     padding: "10px",
