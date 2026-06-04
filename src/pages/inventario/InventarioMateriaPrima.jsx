@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import AutocompleteInput from '../../components/AutocompleteInput'
 
-const API_URL = 'http://localhost:5000/api/inventario/materia-prima'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_URL = `${API_BASE}/api/inventario/materia-prima`
 
 /* 🔹 AUTOCOMPLETADO (NUEVO) */
 const nombresMateria = [
