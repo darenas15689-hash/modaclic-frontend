@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import AutocompleteInput from "../../components/AutocompleteInput";
-
-const API_URL = "http://localhost:5000/api/cotizaciones";
+import api from "../../services/api";
 
 export default function Cotizaciones() {
   const [lista, setLista] = useState([]);
@@ -40,9 +39,8 @@ export default function Cotizaciones() {
   // CARGAR COTIZACIONES
   // =========================
   const cargar = async () => {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    setLista(data);
+    const res = await api.get("/cotizaciones");
+    setLista(res.data);
   };
 
   useEffect(() => {
@@ -59,13 +57,13 @@ export default function Cotizaciones() {
     }
 
     const method = editandoId ? "PUT" : "POST";
-    const url = editandoId ? `${API_URL}/${editandoId}` : API_URL;
+    const url = editandoId ? `/cotizaciones/${editandoId}` : "/cotizaciones";
 
-    await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
+    if (method === "PUT") {
+      await api.put(url, form);
+    } else {
+      await api.post(url, form);
+    }
 
     setForm({
       cliente: "",
@@ -97,7 +95,7 @@ export default function Cotizaciones() {
   const eliminar = async (id) => {
     if (!confirm("¿Eliminar cotización?")) return;
 
-    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    await api.delete(`/cotizaciones/${id}`);
     // Ajustar página si la actual queda vacía tras eliminar
     const newTotal = Math.ceil((lista.length - 1) / itemsPerPage);
     if (currentPage > newTotal && newTotal > 0) setCurrentPage(newTotal);

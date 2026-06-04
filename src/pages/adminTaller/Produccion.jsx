@@ -1,6 +1,6 @@
-import axios from 'axios'
 import { useEffect, useState } from 'react'
 import AutocompleteInput from '../../components/AutocompleteInput'
+import api from '../../services/api'
 
 function ProduccionAdminTaller() {
 
@@ -20,7 +20,7 @@ function ProduccionAdminTaller() {
 
   const agregarOrden = async () => {
     try {
-      await axios.post('http://127.0.0.1:5000/api/produccion', form)
+      await api.post('/produccion', form)
       alert('Orden creada correctamente')
       setCurrentPage(1)
       cargarOrdenes()
@@ -47,7 +47,7 @@ function ProduccionAdminTaller() {
 
   const cargarOrdenes = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:5000/api/produccion')
+      const res = await api.get('/produccion')
       setOrdenes(res.data)
     } catch (error) {
       console.error(error)
@@ -66,10 +66,7 @@ function ProduccionAdminTaller() {
     if (!responsable) return
 
     try {
-      await axios.put(
-        `http://127.0.0.1:5000/api/produccion/${orden.id}`,
-        { responsable }
-      )
+      await api.put(`/produccion/${orden.id}`, { responsable })
       cargarOrdenes()
     } catch (error) {
       console.error(error)
@@ -80,7 +77,7 @@ function ProduccionAdminTaller() {
     if (!window.confirm('¿Eliminar orden de producción?')) return
 
     try {
-      await axios.delete(`http://127.0.0.1:5000/api/produccion/${id}`)
+      await api.delete(`/produccion/${id}`)
       cargarOrdenes()
     } catch (error) {
       console.error(error)

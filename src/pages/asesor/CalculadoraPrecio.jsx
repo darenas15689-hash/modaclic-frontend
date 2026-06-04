@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AutocompleteInput from "../../components/AutocompleteInput";
+import api from "../../services/api";
 
 const tiposPrenda = [
   "Saco Clasico", "Saco Slim Fit", "Pantalon Jeans", "Camisa",
@@ -19,13 +20,8 @@ export default function CalculadoraPrecio() {
   const [precio, setPrecio] = useState(null);
 
   const calcular = async () => {
-    const res = await fetch("http://localhost:5000/api/calculadora/precio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
-    const data = await res.json();
-    setPrecio(data.precio_estimado);
+    const res = await api.post("/calculadora/precio", form);
+    setPrecio(res.data.precio_estimado);
   };
 
   return (
