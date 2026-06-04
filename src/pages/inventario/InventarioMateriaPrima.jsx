@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import AutocompleteInput from '../../components/AutocompleteInput'
 
+const API_URL = 'http://localhost:5000/api/inventario/materia-prima'
+
 /* 🔹 AUTOCOMPLETADO (NUEVO) */
 const nombresMateria = [
   'Algodón','Poliéster','Lana','Seda','Denim','Lino','Cuero',
@@ -31,7 +33,7 @@ function InventarioMateriaPrima() {
   const unidadesHistorial = [...new Set(items.map(i => i.unidad))]
 
   const cargar = async () => {
-    const res = await fetch('http://localhost:5000/api/inventario/materia-prima')
+    const res = await fetch(API_URL)
     setItems(await res.json())
   }
 
@@ -41,8 +43,8 @@ function InventarioMateriaPrima() {
     if (!nuevo.nombre || !nuevo.stock) return alert('Campos obligatorios')
 
     const url = editandoId
-      ? `http://localhost:5000/api/inventario/materia-prima/${editandoId}`
-      : 'http://localhost:5000/api/inventario/materia-prima'
+      ? `${API_URL}/${editandoId}`
+      : API_URL
 
     await fetch(url,{
       method: editandoId ? 'PUT' : 'POST',
@@ -64,9 +66,11 @@ function InventarioMateriaPrima() {
 
   const eliminar = async (id) => {
     if (!confirm('¿Eliminar materia prima?')) return
-    await fetch(`http://localhost:5000/api/inventario/materia-prima/${id}`,{
+
+    await fetch(`${API_URL}/${id}`,{
       method:'DELETE'
     })
+
     cargar()
   }
 
@@ -105,7 +109,10 @@ function InventarioMateriaPrima() {
           onChange={e=>setNuevo({...nuevo,stock:e.target.value})}
         />
 
-        <button className={`btn ${editandoId?'btn-primary':'btn-success'}`} onClick={guardar}>
+        <button
+          className={`btn ${editandoId ? 'btn-primary' : 'btn-success'}`}
+          onClick={guardar}
+        >
           {editandoId ? 'Actualizar' : 'Agregar'}
         </button>
       </div>
@@ -113,18 +120,32 @@ function InventarioMateriaPrima() {
       <table className="table table-hover">
         <thead>
           <tr>
-            <th>Nombre</th><th>Unidad</th><th>Stock</th><th>Acción</th>
+            <th>Nombre</th>
+            <th>Unidad</th>
+            <th>Stock</th>
+            <th>Acción</th>
           </tr>
         </thead>
         <tbody>
-          {currentItems.map(i=>(
+          {currentItems.map(i => (
             <tr key={i.id}>
               <td>{i.nombre}</td>
               <td>{i.unidad}</td>
               <td>{i.stock}</td>
               <td className="d-flex gap-1">
-                <button className="btn btn-sm btn-primary" onClick={()=>editar(i)}>Editar</button>
-                <button className="btn btn-sm btn-danger" onClick={()=>eliminar(i.id)}>Eliminar</button>
+                <button
+                  className="btn btn-sm btn-primary"
+                  onClick={() => editar(i)}
+                >
+                  Editar
+                </button>
+
+                <button
+                  className="btn btn-sm btn-danger"
+                  onClick={() => eliminar(i.id)}
+                >
+                  Eliminar
+                </button>
               </td>
             </tr>
           ))}
@@ -141,9 +162,13 @@ function InventarioMateriaPrima() {
           >
             ← Anterior
           </button>
+
           <span className="text-secondary small fw-semibold">
-            Página {currentPage} de {totalPages} &nbsp;·&nbsp; {items.length} registros
+            Página {currentPage} de {totalPages}
+            &nbsp;·&nbsp;
+            {items.length} registros
           </span>
+
           <button
             className="btn btn-sm btn-outline-secondary"
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}

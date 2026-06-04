@@ -31,6 +31,8 @@ function InventarioProductos() {
     stock: ''
   })
 
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
   // ========================= PAGINACIÓN =========================
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
@@ -43,7 +45,7 @@ function InventarioProductos() {
   const coloresHistorial = [...new Set(productos.map(p => p.color))]
 
   const cargar = async () => {
-    const res = await fetch('http://localhost:5000/api/inventario/productos')
+    const res = await fetch(`${API_BASE}/api/inventario/productos`)
     setProductos(await res.json())
   }
 
@@ -53,13 +55,13 @@ function InventarioProductos() {
     if (!nuevo.nombre || !nuevo.stock) return alert('Campos obligatorios')
 
     if (editandoId) {
-      await fetch(`http://localhost:5000/api/inventario/productos/${editandoId}`, {
+      await fetch(`${API_BASE}/api/inventario/productos/${editandoId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(nuevo)
       })
     } else {
-      await fetch('http://localhost:5000/api/inventario/productos', {
+      await fetch(`${API_BASE}/api/inventario/productos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(nuevo)
@@ -80,7 +82,7 @@ function InventarioProductos() {
 
   const eliminar = async (id) => {
     if (!confirm('¿Eliminar producto?')) return
-    await fetch(`http://localhost:5000/api/inventario/productos/${id}`, {
+    await fetch(`${API_BASE}/api/inventario/productos/${id}`, {
       method: 'DELETE'
     })
     cargar()
